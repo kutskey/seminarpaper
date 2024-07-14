@@ -1,6 +1,9 @@
 # load packages
-library(tidyverse)
+library(dplyr)
 library(openxlsx)
+library(lubridate)
+library(sf)
+library(geosphere)
 
 # clear workspace
 rm(list = ls())
@@ -29,7 +32,9 @@ ged_africa <- ged_data %>% filter(region == "Africa")
 
 # save prepared data to data_prep folder
 write_rds(ged_africa, "data_prep/ged_africa.rds")
-write_rds(ged_data, "data_prep/ged_data.rds")
+
+# remove ged_data
+rm(ged_data)
 
 # prepare dam data ----
 
