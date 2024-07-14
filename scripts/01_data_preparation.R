@@ -5,20 +5,41 @@ library(openxlsx)
 # clear workspace
 rm(list = ls())
 
-# preprocess conflict data ----
+# prepare conflict data ----
 
 # load GED data
 ged_data <- read_rds("data_orig/ged241.rds")
 
-# parse
+# view data
 glimpse(ged_data)
 
-# preprocess dam data ----
+# remove all rows that do not contain a value for latitude and longitude
+ged_data <- ged_data %>% filter(!is.na(`latitude`), !is.na(`longitude`))
+
+# convert latitude and longitude to numeric
+ged_data$`longitude` <- as.numeric(ged_data$`longitude`)
+ged_data$`latitude` <- as.numeric(ged_data$`latitude`)
+
+# check class
+class(ged_data$`longitude`)
+class(ged_data$`latitude`)
+
+# print out unique regions
+unique(ged_data$`region`)
+
+# filter for region "Africa"
+ged_africa <- ged_data %>% filter(region == "Africa")
+
+# save prepared data to data_prep folder
+write_rds(ged_africa, "data_prep/ged_africa.rds")
+write_rds(ged_data, "data_prep/ged_data.rds")
+
+# prepare dam data ----
 
 # load FAO data
 fao_data <- read.xlsx("data_orig/Africa-dams_eng_dams.xlsx")
 
-# parse
+# view data
 glimpse(fao_data)
 
 # replace variable name with first entry of each column
@@ -51,7 +72,7 @@ colnames(fao_data)[colnames(fao_data) == "Decimal degree latitude"] <- "latitude
 # print variable names
 colnames(fao_data)
 
-# parse
+# view data
 glimpse(fao_data)
 
 # print out number of different Major basins
@@ -66,5 +87,5 @@ sum(fao_data$Hydroelectricity_MW == "x", na.rm = TRUE)
 # remove all rows that do not contain a value for "Hydroelectricity_MW"
 fao_data <- fao_data %>% filter(!is.na(Hydroelectricity_MW))
 
-# save preprocessed data to data_prep folder
+# save prepared data to data_prep folder
 write_rds(fao_data, "data_prep/fao_data.rds")
