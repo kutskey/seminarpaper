@@ -10,9 +10,6 @@ rm(list = ls())
 # load GED data
 ged_data <- read_rds("data_orig/ged241.rds")
 
-# view data
-glimpse(ged_data)
-
 # remove all rows that do not contain a value for latitude and longitude
 ged_data <- ged_data %>% filter(!is.na(`latitude`), !is.na(`longitude`))
 
@@ -38,9 +35,6 @@ write_rds(ged_data, "data_prep/ged_data.rds")
 
 # load FAO data
 fao_data <- read.xlsx("data_orig/Africa-dams_eng_dams.xlsx")
-
-# view data
-glimpse(fao_data)
 
 # replace variable name with first entry of each column
 colnames(fao_data) <- fao_data[1,]
@@ -71,9 +65,6 @@ colnames(fao_data)[colnames(fao_data) == "Decimal degree latitude"] <- "latitude
 
 # print variable names
 colnames(fao_data)
-
-# view data
-glimpse(fao_data)
 
 # print out number of different Major basins
 length(unique(fao_data$`Major basin`))
