@@ -10,15 +10,12 @@ library(tmap)
 library(leaflet)
 
 # Lade fao_data.rds in R
-fao_data <- read_rds("data_prep/fao_data.rds")
+fao_data <- read_rds("data_prep/fao_hydroelectricity.rds")
 
 # Erstelle die Karte mit sf und tmap ----
 
 # konvertiere in sf objekt
 fao_sf <- st_as_sf(fao_data, coords = c("longitude", "latitude"), crs = 4326)
-
-# 50km buffer around fao points
-fao_buffer <- st_buffer(fao_sf, dist = 50000)
 
 # Switch tmap mode to "view" for interactive maps
 tmap_mode("view")
