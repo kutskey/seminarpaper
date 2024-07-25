@@ -1,9 +1,7 @@
 # load packages
 library(tidyverse)
 library(openxlsx)
-library(lubridate)
-library(sf)
-library(geosphere)
+
 
 # clear workspace
 rm(list = ls())
@@ -13,9 +11,6 @@ rm(list = ls())
 # load GED data
 ged_data <- read_rds("data_orig/ged241.rds")
 
-# add variable data by copying the value of the variable date_start
-ged_data$date <- ged_data$date_start
-
 # remove all rows that do not contain a value for latitude and longitude
 ged_data <- ged_data %>% filter(!is.na(`latitude`), !is.na(`longitude`))
 
@@ -23,9 +18,7 @@ ged_data <- ged_data %>% filter(!is.na(`latitude`), !is.na(`longitude`))
 ged_data$`longitude` <- as.numeric(ged_data$`longitude`)
 ged_data$`latitude` <- as.numeric(ged_data$`latitude`)
 
-# check class
-class(ged_data$`longitude`)
-class(ged_data$`latitude`)
+# rename best to anzahl_tote
 
 # print out unique regions
 unique(ged_data$`region`)
@@ -34,7 +27,7 @@ unique(ged_data$`region`)
 ged_africa <- ged_data %>% filter(region == "Africa")
 
 # save prepared data to data_prep folder
-write_rds(ged_africa, "data_prep/ged_africa.rds")
+write_rds(ged_africa, "data_prep/konflikte.rds")
 
 # prepare dam data ----
 
