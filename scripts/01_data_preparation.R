@@ -2,7 +2,6 @@
 library(tidyverse)
 library(openxlsx)
 
-
 # clear workspace
 rm(list = ls())
 
@@ -17,11 +16,23 @@ ged_data <- ged_data %>% filter(!is.na(`latitude`), !is.na(`longitude`))
 # convert latitude and longitude to numeric
 ged_data$`longitude` <- as.numeric(ged_data$`longitude`)
 ged_data$`latitude` <- as.numeric(ged_data$`latitude`)
+class(ged_data$`longitude`)
+class(ged_data$`latitude`)
+
+# check if values for latitude and longitude are within valid ranges
+ged_data %>% filter(latitude < -90 | latitude > 90)
+ged_data %>% filter(longitude < -180 | longitude > 180)
+
+# rename variable "longitude" to "long" and "latitude" to "lat"
+colnames(ged_data)[colnames(ged_data) == "longitude"] <- "lon"
+colnames(ged_data)[colnames(ged_data) == "latitude"] <- "lat"
 
 # rename best to anzahl_tote
+colnames(ged_data)[colnames(ged_data) == "best"] <- "anzahl_tote"
+print(colnames(ged_data))
 
-# print out unique regions
-unique(ged_data$`region`)
+# add variable date that is a copy of date_start
+ged_data$date <- as.Date(ged_data$date_start)
 
 # filter for region "Africa"
 ged_africa <- ged_data %>% filter(region == "Africa")
@@ -46,27 +57,29 @@ fao_data <- fao_data %>% filter(!is.na(`Decimal degree longitude`), !is.na(`Deci
 # convert "Decimal degree longitude" and "Decimal degree latitude" to numeric
 fao_data$`Decimal degree longitude` <- as.numeric(fao_data$`Decimal degree longitude`)
 fao_data$`Decimal degree latitude` <- as.numeric(fao_data$`Decimal degree latitude`)
-
-# print class of Decimal degree longitude and Decimal degree latitude
 class(fao_data$`Decimal degree longitude`)
 class(fao_data$`Decimal degree latitude`)
 
 # rename "Decemal degree latitude" and "Decimal degree longitude" to "latitude" and "longitude"
-colnames(fao_data)[colnames(fao_data) == "Decimal degree longitude"] <- "longitude"
-colnames(fao_data)[colnames(fao_data) == "Decimal degree latitude"] <- "latitude"
+colnames(fao_data)[colnames(fao_data) == "Decimal degree longitude"] <- "lon"
+colnames(fao_data)[colnames(fao_data) == "Decimal degree latitude"] <- "lat"
+
+# check if values for latitude and longitude are within valid ranges
+fao_data %>% filter(lat < -90 | lat > 90)
+fao_data %>% filter(lon < -180 | lon > 180)
 
 # add variable date to fao_data containing the year of construction
 fao_data$date <- as.Date(paste0(fao_data$`Completed /operational since`, "-01-01"))
+head(fao_data$date)
 
-# rename Hydroelectricity (MW) to Hydroelectricity_MW
-colnames(fao_data)[colnames(fao_data) == "Hydroelectricity (MW)"] <- "Hydroelectricity_MW"
+# rename Dam height (m) to hoehe
+colnames(fao_data)[colnames(fao_data) == "Dam height (m)"] <- "hoehe"
+colnames(fao_data)
 
-# print out how many times Hydroelectricity is x
-sum(fao_data$Hydroelectricity_MW == "x", na.rm = TRUE)
-
-# remove all rows that do not contain a value for "Hydroelectricity_MW"
-fao_hydroelectricity <- fao_data %>% filter(!is.na(Hydroelectricity_MW))
+# rename Reservoir capacity (million m3) to wassermenge
+colnames(fao_data)[colnames(fao_data) == "Reservoir capacity (million m3)"] <- "wassermenge"
+colnames(fao_data)
 
 # save prepared data to data_prep folder
-write_rds(fao_data, "data_prep/fao_data.rds")
-write_rds(fao_hydroelectricity, "data_prep/fao_hydroelectricity.rds")
+write_rds(fao_data, "data_prep/staudaemme.rds")
+

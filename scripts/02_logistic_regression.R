@@ -1,9 +1,13 @@
 # Libraries laden
+library(tidyverse)
 library(geosphere)
 
+# Environment leeren
+rm(list = ls())
+
 # Daten einlesen
-staudaemme <- read.csv("staudaemme.csv")
-konflikte <- read.csv("konflikte.csv")
+konflikte <- read_rds("data_prep/konflikte.rds")
+staudaemme <- read_rds("data_prep/staudaemme.rds")
 
 # Konflikte in der Nähe von Staudämmen identifizieren
 distance <- function(lat1, lon1, lat2, lon2) {
@@ -12,13 +16,13 @@ distance <- function(lat1, lon1, lat2, lon2) {
 
 konflikte$in_der_naehe <- apply(konflikte, 1, function(row) {
   min(apply(staudaemme, 1, function(dam) {
-    distance(row['latittude'], row['longitude'], dam['latitude'], dam['longitude'])
+    distance(row['lat'], row['lon'], dam['lat'], dam['lon'])
   })) < 50000
 })
 
 # Relevante Variablen auswählen
 staudaemme <- staudaemme[, c("hoehe", "wassermenge", "latitude", "longitude")]
-konflikte <- konflikte[, c("in_der_naehe", "anzahl_tote", "dauer", "partei1", "partei2")]
+konflikte <- konflikte[, c("in_der_naehe", "anzahl_tote", "type_of_violence")]
 
 # Neue Datenstruktur erstellen
 analyse_data <- data.frame(
