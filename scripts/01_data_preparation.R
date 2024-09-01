@@ -5,81 +5,65 @@ library(openxlsx)
 # clear workspace
 rm(list = ls())
 
-# prepare conflict data ----
-
-# load GED data
-ged_data <- read_rds("data_orig/ged241.rds")
-
-# remove all rows that do not contain a value for latitude and longitude
-ged_data <- ged_data %>% filter(!is.na(`latitude`), !is.na(`longitude`))
-
-# convert latitude and longitude to numeric
-ged_data$`longitude` <- as.numeric(ged_data$`longitude`)
-ged_data$`latitude` <- as.numeric(ged_data$`latitude`)
-class(ged_data$`longitude`)
-class(ged_data$`latitude`)
-
-# check if values for latitude and longitude are within valid ranges
-ged_data %>% filter(latitude < -90 | latitude > 90)
-ged_data %>% filter(longitude < -180 | longitude > 180)
-
-# rename variable "longitude" to "long" and "latitude" to "lat"
-colnames(ged_data)[colnames(ged_data) == "longitude"] <- "lon"
-colnames(ged_data)[colnames(ged_data) == "latitude"] <- "lat"
-
-# rename best to anzahl_tote
-colnames(ged_data)[colnames(ged_data) == "best"] <- "anzahl_tote"
-print(colnames(ged_data))
-
-# add variable date that is a copy of date_start
-ged_data$date <- as.Date(ged_data$date_start)
-
-# filter for region "Africa"
-ged_africa <- ged_data %>% filter(region == "Africa")
-
-# save prepared data to data_prep folder
-write_rds(ged_africa, "data_prep/konflikte.rds")
-
-# prepare dam data ----
+# AQUASTAT - FAO's Global Information System on Water and Agriculture ----
 
 # load FAO data
-fao_data <- read.xlsx("data_orig/Africa-dams_eng_dams.xlsx")
+dams_africa <- read.xlsx("data_orig/Africa-dams_eng_dams.xlsx")
+dams_middle_east <- read.xlsx("data_orig/Middle East-dams_eng.xlsx")
+dams_europe <- read.xlsx("data_orig/Europe-dams_eng.xlsx")
 
 # replace variable name with first entry of each column
-colnames(fao_data) <- fao_data[1,]
+colnames(dams_africa) <- dams_africa[1,]
+colnames(dams_middle_east) <- dams_middle_east[1,]
+colnames(dams_europe) <- dams_europe[1,]
+
 
 # remove first row
-fao_data <- fao_data[-1,]
+dams_africa <- dams_africa[-1,]
+dams_middle_east <- dams_middle_east[-1,]
+dams_europe <- dams_europe[-1,]
 
-# remove all rows that do not contain a value for "Decimal degree longitude" and "Decimal degree latitude"
-fao_data <- fao_data %>% filter(!is.na(`Decimal degree longitude`), !is.na(`Decimal degree latitude`))
 
-# convert "Decimal degree longitude" and "Decimal degree latitude" to numeric
-fao_data$`Decimal degree longitude` <- as.numeric(fao_data$`Decimal degree longitude`)
-fao_data$`Decimal degree latitude` <- as.numeric(fao_data$`Decimal degree latitude`)
-class(fao_data$`Decimal degree longitude`)
-class(fao_data$`Decimal degree latitude`)
+#combine all datasets
+fao_data <- rbind(dams_africa, dams_middle_east, dams_europe)
 
-# rename "Decemal degree latitude" and "Decimal degree longitude" to "latitude" and "longitude"
-colnames(fao_data)[colnames(fao_data) == "Decimal degree longitude"] <- "lon"
-colnames(fao_data)[colnames(fao_data) == "Decimal degree latitude"] <- "lat"
+# add variable year to fao_data containing the year of construction
+fao_data$year <- fao_data$'Completed /operational since'
 
-# check if values for latitude and longitude are within valid ranges
-fao_data %>% filter(lat < -90 | lat > 90)
-fao_data %>% filter(lon < -180 | lon > 180)
+# remove all NA values in year
+fao_data <- fao_data[!is.na(fao_data$year),]
 
-# add variable date to fao_data containing the year of construction
-fao_data$date <- as.Date(paste0(fao_data$`Completed /operational since`, "-01-01"))
-head(fao_data$date)
 
-# rename Dam height (m) to hoehe
-colnames(fao_data)[colnames(fao_data) == "Dam height (m)"] <- "hoehe"
-colnames(fao_data)
+# create a new variable conutry_year combining country and year
+fao_data$country_year <- paste(fao_data$Country, fao_data$year, sep = "_")
 
-# rename Reservoir capacity (million m3) to wassermenge
-colnames(fao_data)[colnames(fao_data) == "Reservoir capacity (million m3)"] <- "wassermenge"
-colnames(fao_data)
+# rename Dam height (m) to height
+colnames(fao_data)[colnames(fao_data) == "Dam height (m)"] <- "height"
+
+
+# rename Reservoir capacity (million m3) to capacity
+colnames(fao_data)[colnames(fao_data) == "Reservoir capacity (million m3)"] <- "capacity"
+
+
+# filter out all dams with a minimum capacity of X and a minimum height of Y
+
 
 # save prepared data to data_prep folder
-write_rds(fao_data, "data_prep/staudaemme.rds")
+write_rds(fao_data, "data_prep/fao_data.rds")
 
+
+# WARICC dataset ----
+
+# load data
+WARICC_data <- read.xlsx("data_orig/WARICC dataset v10.xlsx", sheet = 1)
+
+# save to data_prep folder
+write_rds(WARICC_data, "data_prep/WARICC_data.rds")
+
+# De Stefano et al. Dataset ----
+
+# load data
+Stefano_BCU <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 2)
+Stefano_Treaty <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 3)
+Stefano_RBO <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 4)
+Stefano_Variability <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 5)
