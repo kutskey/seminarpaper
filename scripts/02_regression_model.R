@@ -1,5 +1,6 @@
 # load packages
 library(tidyverse)
+library(stargazer)
 
 # clear workspace
 rm(list = ls())
@@ -9,10 +10,13 @@ fao_data <- read_rds("data_prep/fao_data.rds")
 WARICC_data <- read_rds("data_prep/WARICC_data.rds")
 
 ## calculate the mean of "wes" for each country and each year
+
 # group by country_year and calculate the mean of "wes"
 WARICC_data <- WARICC_data %>%
   group_by(country_year) %>%
   summarise(wes = mean(wes, na.rm = TRUE))
+
+
 
 ########### in this section i will triplicate the rows to have 3 years for each dam #########
 
@@ -47,8 +51,6 @@ join_data <- join_data[!duplicated(join_data$country_year),]
 join_data$dam <- !is.na(join_data$'Name of dam')
 
 
-
-
 ######## finally run regression model ########
 
 # change TRUE to 1 and FALSE to 0
@@ -62,12 +64,10 @@ model <- lm(wes ~ dam, data = join_data)
 # print out regression table
 summary(model)
 
-# plot the data
-ggplot(join_data, aes(x = dam, y = wes)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(title = "Regression of wes on dam",
-       x = "dam",
-       y = "wes")
+
+
+# HTML output
+stargazer(model, type = "html", title = "Regression Results", out = "output/regression_table.html")
+
 
 
