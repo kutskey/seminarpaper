@@ -53,15 +53,6 @@ fao_data <- fao_data[!is.na(fao_data$ISO3),]
 # create variable country_year combining ISO3 and year
 fao_data$country_year <- paste(fao_data$ISO3, fao_data$year, sep = "_")
 
-# rename Dam height (m) to height
-colnames(fao_data)[colnames(fao_data) == "Dam height (m)"] <- "height"
-
-# rename Reservoir capacity (million m3) to capacity
-colnames(fao_data)[colnames(fao_data) == "Reservoir capacity (million m3)"] <- "capacity"
-
-# remove all NA values in height and capacity
-fao_data <- fao_data[!is.na(fao_data$height),]
-
 # change class to numeric
 fao_data$year <- as.numeric(fao_data$year)
 
