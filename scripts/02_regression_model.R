@@ -9,12 +9,6 @@ rm(list = ls())
 fao_data <- read_rds("data_prep/fao_data.rds")
 WARICC_data <- read_rds("data_prep/WARICC_data.rds")
 
-## calculate the mean of "wes" for each country and each year
-
-# group by country_year and calculate the mean of "wes"
-WARICC_data <- WARICC_data %>%
-  group_by(country_year) %>%
-  summarise(wes = mean(wes, na.rm = TRUE))
 
 
 
@@ -24,13 +18,13 @@ WARICC_data <- WARICC_data %>%
 df_additional <- fao_data %>%
   mutate(year = year + 1)
 df_additional <- df_additional %>%
-  mutate(country_year = paste(Country, year, sep = "_"))
+  mutate(country_year = paste(ISO_alpha_3, year, sep = "_"))
 
 # Create the additional rows
 df_additional2 <- fao_data %>%
   mutate(year = year + 2)
 df_additional2 <- df_additional2 %>%
-  mutate(country_year = paste(Country, year, sep = "_"))
+  mutate(country_year = paste(ISO_alpha_3, year, sep = "_"))
 
 # Combine the original DataFrame with the new one
 df_combined <- bind_rows(fao_data, df_additional, df_additional2)
