@@ -29,6 +29,8 @@ dams_europe <- dams_europe[-1,]
 fao_data <- rbind(dams_africa, dams_middle_east, dams_europe)
 rm(dams_africa, dams_middle_east, dams_europe)
 
+# save raw data
+write_rds(fao_data, "data_prep/fao_data_raw.rds")
 
 # add variable year to fao_data containing the year of construction
 fao_data$year <- fao_data$'Completed /operational since'
@@ -42,11 +44,19 @@ fao_data <- fao_data[fao_data$year >= 1997 & fao_data$year <= 2009,]
 # change class to numeric
 fao_data$year <- as.numeric(fao_data$year)
 
-# rename ISO alpha- 3 to ISO_alpha_3
-colnames(fao_data)[4] <- "ISO_alpha_3"
+# create variable country with ISO code
+fao_data$country <- fao_data$'ISO alpha- 3'
 
-# create variable country_year combining ISO alpha- 3 and year
-fao_data$country_year <- paste(fao_data$ISO_alpha_3, fao_data$year, sep = "_")
+# create a new dummy variable dam with 1 for each observation
+fao_data$dam <- 1
+
+# create a new dummy variable country_year combining country and year
+fao_data$country_year <- paste(fao_data$country, fao_data$year, sep = "_")
+
+# manipulate the dam data so that the dam impacts the following year
+# add one year to the year variable
+fao_data <- fao_data %>%
+  mutate(year = year + 1)
 
 # save prepared data to data_prep folder
 write_rds(fao_data, "data_prep/fao_data.rds")
@@ -60,18 +70,19 @@ rm(list = ls())
 # load data
 WARICC_data <- read.xlsx("data_orig/WARICC dataset v10.xlsx", sheet = 1)
 
+# create variable country with cname
+WARICC_data$country <- WARICC_data$cname
+
 # create a new variable country_year combining cname and year
 WARICC_data$country_year <- paste(WARICC_data$cname, WARICC_data$year, sep = "_")
 
-# remove NA values in country_year
-WARICC_data <- WARICC_data[!is.na(WARICC_data$country_year),]
 
-# save to data_prep folder
-write_rds(WARICC_data, "data_prep/WARICC_data.rds")
 
-## create a sepeate dataset where instead of calculating a mean for each country and year
+## instead of calculating a mean for each country and year
 ## we split the wes variable into wes_positive for positive values and wes_negative for negative values
 ## then we calculate the mean for both values
+
+
 
 # split wes
 WARICC_data <- WARICC_data %>%
@@ -81,20 +92,17 @@ WARICC_data <- WARICC_data %>%
 # group by country_year and calculate the mean of wes_positive and wes_negative
 WARICC_data <- WARICC_data %>%
   group_by(country_year) %>%
-  summarise(wes_positive = mean(wes, na.rm = TRUE))
+  summarise(wes_positive = mean(wes_positive, na.rm = TRUE),
+            wes_negative = mean(wes_negative, na.rm = TRUE))
+
+# rename wes_positive to cooperation and wes_negative to conflict
+WARICC_data <- WARICC_data %>%
+  rename(cooperation = wes_positive,
+         conflict = wes_negative)
+
+# create two variables country and year from country_year
+WARICC_data$country <- substr(WARICC_data$country_year, 1, 3)
+WARICC_data$year <- as.numeric(substr(WARICC_data$country_year, 5, 8))
 
 # save this dataset to data_prep
-write_rds(WARICC_data, "data_prep/WARICC_splitted.rds")
-
-## calculate the mean of "wes" for each country and each year and replace the original
-## dataset with the new one
-
-WARICC_data <- read_rds("data_prep/WARICC_data.rds")
-
-# group by country_year and calculate the mean of wes
-WARICC_data <- WARICC_data %>%
-  group_by(country_year) %>%
-  summarise(wes = mean(wes, na.rm = TRUE))
-
-# save to data_prep folder
 write_rds(WARICC_data, "data_prep/WARICC_data.rds")
