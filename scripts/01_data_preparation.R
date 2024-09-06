@@ -73,6 +73,14 @@ WARICC_data <- read.xlsx("data_orig/WARICC dataset v10.xlsx", sheet = 1)
 # create variable country with cname
 WARICC_data$country <- WARICC_data$cname
 
+# create a table that shows which countries were represented in the dataset
+countries <- WARICC_data %>%
+  count(country)
+
+# save the table as html
+write.xlsx(countries, "output/countries_in_dataset.xlsx")
+
+
 # create a new variable country_year combining cname and year
 WARICC_data$country_year <- paste(WARICC_data$cname, WARICC_data$year, sep = "_")
 
@@ -81,8 +89,6 @@ WARICC_data$country_year <- paste(WARICC_data$cname, WARICC_data$year, sep = "_"
 ## instead of calculating a mean for each country and year
 ## we split the wes variable into wes_positive for positive values and wes_negative for negative values
 ## then we calculate the mean for both values
-
-
 
 # split wes
 WARICC_data <- WARICC_data %>%
@@ -104,5 +110,39 @@ WARICC_data <- WARICC_data %>%
 WARICC_data$country <- substr(WARICC_data$country_year, 1, 3)
 WARICC_data$year <- as.numeric(substr(WARICC_data$country_year, 5, 8))
 
+#### make sure that each country has observations from 1997 to 2009
+
+# Create a complete dataset with all country-year combinations
+all_countries <- unique(WARICC_data$country)
+all_years <- 1997:2009
+
+# Create a dataframe with all combinations of countries and years
+complete_data <- expand.grid(country = all_countries, year = all_years)
+
+# Merge the complete data with the original data
+WARICC_data <- complete_data %>%
+  left_join(WARICC_data, by = c("country", "year"))
+
+# Replace missing conflict values with 0
+WARICC_data <- WARICC_data %>%
+  mutate(conflict = ifelse(is.na(conflict), 0, conflict),
+         cooperation = ifelse(is.na(cooperation), 0, cooperation))
+
+# create a new variable country_year combining cname and year
+WARICC_data$country_year <- paste(WARICC_data$country, WARICC_data$year, sep = "_")
+
 # save this dataset to data_prep
 write_rds(WARICC_data, "data_prep/WARICC_data.rds")
+
+
+# Stefano et al Replica ----
+
+# clear workspace
+rm(list = ls())
+
+# load data
+stefano_data_BCU <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 2)
+stefano_data_treaty <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 3)
+stefano_data_rbo <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 4)
+stefano_data_variability <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 5)
+

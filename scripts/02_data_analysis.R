@@ -22,6 +22,12 @@ WARICC_data <- read_rds("data_prep/WARICC_data.rds")
 # left join the dam data by country_year but include only the columns country, year and dam
 data <- left_join(WARICC_data, fao_data %>% select(country_year, country, year, dam), by = "country_year")
 
+
+
+# remove duplicates by variable country_year
+data <- data %>% distinct(country_year, .keep_all = TRUE)
+
+
 # if dam is NA then set dam to 0
 data$dam[is.na(data$dam)] <- 0
 
@@ -35,7 +41,15 @@ data <- data %>% select(-country.y, -year.y)
 # rename country.x and year.x to country and year
 data <- data %>% rename(country = country.x, year = year.x)
 
+# print out some info about the data -----------
 
+
+# count dams in the dataset
+data %>%
+  count(dam)
+
+data_dams <- data %>%
+  filter(dam == 1)
 
 
 # create a map of geolocated dams----
@@ -68,6 +82,10 @@ fao_data %>%
   filter(country == "TUR") %>%
   count()
 
+# count the number of countries in data
+countries <- data %>%
+  count(country)
+
 
 # plot the data ----------
 
@@ -75,20 +93,31 @@ fao_data %>%
 # plot the data, use x=dam and y=cooperation
 ggplot(data, aes(x = dam, y = cooperation)) +
   geom_point() +
-  labs(title = "Scatterplot of dam and cooperation",
+  #make the points bigger if there are more than 1 point
+  geom_jitter(width = 0.05, height = 0.05) +
+  labs(title = "Dam and Cooperation",
        x = "Dam",
        y = "Cooperation") +
   theme_minimal()
+
+# save the plot as jpg
+ggsave("output/plot_cooperation.jpg")
 
 
 # plot the data, use x=dam and y=conflict
 
 ggplot(data, aes(x = dam, y = conflict)) +
   geom_point() +
-  labs(title = "Scatterplot of dam and conflict",
+  #make the points bigger if there are more than 1 point
+  geom_jitter(width = 0.05, height = 0.05) +
+  labs(title = "Dam and Conflict",
        x = "Dam",
        y = "Conflict") +
   theme_minimal()
+  
+
+# save the plot as jpg
+ggsave("output/plot_conflict.jpg")
 
 # run regression model -------
 
@@ -102,11 +131,20 @@ model_cooperation <- plm(cooperation ~ dam, data = data, index = c("country", "y
 model_conflict <- plm(conflict ~ dam, data = data, index = c("country", "year"), 
                       model = "within")
 
-
 # HTML output
 stargazer(model_cooperation, type = "html", title = "Regression Results", 
           out = "output/regression_table_cooperation.html")
 stargazer(model_conflict, type = "html", title = "Regression Results", 
           out = "output/regression_table_conflict.html")
+
+
+
+
+
+
+
+
+
+
 
 
