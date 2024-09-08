@@ -58,6 +58,12 @@ fao_data$country_year <- paste(fao_data$country, fao_data$year, sep = "_")
 fao_data <- fao_data %>%
   mutate(year = year + 1)
 
+# remove all NA values dam height
+fao_data <- fao_data[!is.na(fao_data$'Dam height (m)'),]
+
+# remove all values smaller than 15 meters of dam height
+fao_data <- fao_data[fao_data$'Dam height (m)' >=15 ,]
+
 # save prepared data to data_prep folder
 write_rds(fao_data, "data_prep/fao_data.rds")
 
@@ -133,16 +139,3 @@ WARICC_data$country_year <- paste(WARICC_data$country, WARICC_data$year, sep = "
 
 # save this dataset to data_prep
 write_rds(WARICC_data, "data_prep/WARICC_data.rds")
-
-
-# Stefano et al Replica ----
-
-# clear workspace
-rm(list = ls())
-
-# load data
-stefano_data_BCU <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 2)
-stefano_data_treaty <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 3)
-stefano_data_rbo <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 4)
-stefano_data_variability <- read.xlsx("data_orig/StefanoEtAl49Replication.xlsx", sheet = 5)
-

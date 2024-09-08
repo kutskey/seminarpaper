@@ -45,12 +45,19 @@ data <- data %>% rename(country = country.x, year = year.x)
 
 
 # count dams in the dataset
-data %>%
+dams_count <- data %>%
   count(dam)
 
 data_dams <- data %>%
   filter(dam == 1)
 
+# minimum height of dams in fao_data
+min_height <- min(fao_data$'Dam height (m)')
+
+# number of dams in turkey
+dams_turkey <- fao_data %>%
+  filter(country == "TUR") %>%
+  count(dam)
 
 # create a map of geolocated dams----
 
